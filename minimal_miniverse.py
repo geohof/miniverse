@@ -7,11 +7,11 @@ from numpy import floor
 
 @dataclass
 class Miniverse:
-    verse_len: int = 1000
-    bug_len: int = 30
-    bug_pattern: str = "010"
+    verse_len: int = 500000
+    bug_len: int = 32
+    bug_pattern: str = "0110"
     bug_interval_len: int = 100
-    record_input_len: int = 50
+    record_input_len: int = 40
     record_output_len: int = 1
 
 

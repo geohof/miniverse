@@ -1,0 +1,23 @@
+from dataclasses import dataclass
+
+import numpy as np
+
+
+def array_to_str(vector: np.ndarray) -> str:
+    str_vector = ['+' if i==1 else '-' for i in vector]
+    return ''.join(str_vector)
+
+
+@dataclass
+class Bug:
+    pattern: str = "0110"
+    segment_len: int = 1
+    repeat: int = 1
+    frequency: float = 0.01
+    def __post_init__(self):
+        segment_vector = [int(c) for c in self.pattern]
+        self.vector = np.tile(np.repeat(segment_vector, self.segment_len), self.repeat)
+        self.len = len(self.pattern) * self.segment_len * self.repeat
+
+    def __str__(self) -> str:
+        return array_to_str(self.vector)

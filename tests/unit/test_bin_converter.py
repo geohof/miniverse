@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from miniverse.bin_converter import BinConverter
+from miniverse.bin_converter import BinConverter, prob_to_char
 
 
 def test_bin_converter_to_str():
@@ -25,3 +25,8 @@ def test_bin_converter_to_int():
 
 
 
+def test_prob_to_char():
+    assert prob_to_char(.6) == '6'
+    assert prob_to_char(.34) == '3'
+    assert prob_to_char(.19) == '2'
+    assert prob_to_char(.98) == '*'

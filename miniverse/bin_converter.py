@@ -16,6 +16,18 @@ def to_int(string: str, num_digits: int) -> int:
     return integer
 
 
+
+@np.vectorize
+def prob_to_char(prob: float) -> str:
+    integer = int(prob * 10 + 0.5)
+    char = str(integer)
+    if char == "10":
+        char = "*"
+    return char
+
+
+
+
 @dataclass
 class BinConverter:
     num_digits: int = 3

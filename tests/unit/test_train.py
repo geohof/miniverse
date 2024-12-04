@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from miniverse.bin_converter import BinConverter
+from miniverse.bin_converter import BinConverter, prob_to_char
 from miniverse.minimal_miniverse import Miniverse
 from miniverse.bug import Bug
 
@@ -48,9 +48,9 @@ def test_train_output1():
 
 
 def test_train_output2():
-    record_output_len = 4
+    record_output_len = 3
     record_input_len = 40
-    verse_len = 5_000
+    verse_len = 10_000
 
     bug_spec = {
         'zebra': Bug(pattern='01', repeat=16, frequency=.1),
@@ -58,9 +58,10 @@ def test_train_output2():
         'lion': Bug(pattern='0110', segment_len=8, frequency=.2)
     }
     mv_train = Miniverse(bug_spec=bug_spec, verse_len=verse_len, record_output_len=record_output_len,
-                         record_input_len=record_input_len)
+                         record_input_len=record_input_len, random_seed=606)
     x_train, y_train = mv_train.get_data()
     bc = BinConverter(num_digits=record_output_len)
+
     y_train = np.array([bc.to_int(''.join(l.astype(str))) for l in y_train])
 
     with Timer(logger=logger, name='set up model'):
@@ -82,7 +83,9 @@ def test_train_output2():
     with Timer(logger=logger, name='evaluate model'):
         model.evaluate(x_train, y_train, verbose=2)
 
-    mv_test = Miniverse(bug_spec=bug_spec, verse_len=1041)
+    # mv_test = Miniverse(bug_spec=bug_spec, verse_len=100)
+    mv_test = Miniverse(bug_spec={'snake': Bug(pattern='0101', segment_len=8, frequency=.4)},
+                        verse_len=100, bug_position='equidistant', random_seed=606)
     x_test, y_test = mv_test.get_data(ordered=True)
 
     y = model.predict(x_test)
@@ -91,5 +94,16 @@ def test_train_output2():
             [f'i{i}' for i in range(record_input_len)] + [f'o{bc.to_str(i)}' for i in range(2 ** record_output_len)])
     df.to_clipboard(index=False)
     df.to_csv('out1.csv', index=False)
-    o = np.hstack([x_test[:-1], y])
-    print(o.transpose())
+    o = np.hstack([x_test[:, -1:], y])
+    bc = BinConverter(num_digits=1)
+    str1 = "".join(bc.to_str(mv_test.verse[:-1]))
+    # str1 = "".join(bc.to_str(np.concatenate(x_test[:, -1], x_test[0:-1, 0])))
+    indent_str = (' ' * (record_input_len))
+    bc = BinConverter(num_digits=record_output_len)
+    str_list = [f'o{bc.to_str(i)}: {"".join(prob_to_char(y[:, i]))}'.rjust(mv_test.verse_len -1) for i in range(2 ** record_output_len)]
+    # str_list = [list(prob_to_char(y)) for array in y]
+
+    print(len(str1))
+
+    print(str1)
+    print(*str_list, sep="\n")

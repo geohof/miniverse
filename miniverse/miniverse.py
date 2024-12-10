@@ -1,9 +1,11 @@
 import logging
 from dataclasses import dataclass
 import numpy as np
-from typing import Literal
+from typing import Literal, Optional
 
-from miniverse.bin_converter import BinConverter
+from matplotlib import pyplot as plt
+
+from miniverse.bin_converter import BinConverter, prob_to_char
 from miniverse.bug import Bug
 from miniverse.timer import timed
 
@@ -19,8 +21,13 @@ class Miniverse:
     bug_position: Literal['random', 'equidistant'] = 'random'
     random_seed: int = None
 
-    @timed(logger=logger)
     def __post_init__(self):
+        self._prediction = None
+        self.set_up(timed_log_str=f'setting up miniverse of size {self.verse_len}.')
+
+
+    @timed(logger=logger)
+    def set_up(self):
         self.rng = np.random.default_rng(self.random_seed)
         bug_keys = list(self.bug_spec.keys())
         bug_values = [self.bug_spec[key] for key in bug_keys]
@@ -73,13 +80,60 @@ class Miniverse:
         return self.verse[i: i + self.record_output_len]
 
     @timed(logger=logger)
-    def get_data(self, ordered: bool = False):
+    def get_training_data(self, ordered: bool = False) -> tuple[np.ndarray, np.ndarray]:
         r = np.arange(self.record_input_len, self.verse_len - self.record_output_len, dtype=int)
         if not ordered:
             self.rng.shuffle(r)
         input = np.vstack([self.get_record_input(i) for i in r])
         output = np.vstack([self.get_record_output(i) for i in r])
         return input, output
+
+
+    @timed(logger=logger)
+    def get_input_data(self) -> np.ndarray:
+        r = np.arange(self.record_input_len, self.verse_len, dtype=int)
+        input = np.vstack([self.get_record_input(i) for i in r])
+        return input
+
+
+    def prediction_strs(self,  prediction_array: np.ndarray) -> list[str]:
+        bc = BinConverter(num_digits=self.record_output_len)
+        str_list = [f'o{bc.to_str(i)}: {"".join(prob_to_char(prediction_array[:, i]))}'.rjust(
+            self.verse_len - self.record_output_len) for i in
+                    range(2 ** self.record_output_len)]
+        return str_list
+
+    def make_plt(self, to_index:int = None):
+        matrix = np.vstack([[self.verse[self.record_input_len -1: -1]], self.prediction.transpose()])
+        if to_index:
+            matrix = matrix[:, :to_index]
+
+        fig, ax = plt.subplots(figsize=(12, 6))
+        ax.matshow(matrix, cmap='viridis')
+        ax.set_yticks(np.arange(len(matrix)))
+        ax.set_yticklabels(['M', '000', '001', '010', '011', '100', '101', '110', '111'])
+        def tmp_format(x):
+            integer = int(val * 100 + .5)
+            if integer == 100:
+                return '**'
+            else:
+                return str(integer).rjust(2, '0')
+        for (i, j), val in np.ndenumerate(matrix):
+            txt = int(val + 0.5) if i == 0 else tmp_format(val)
+            ax.text(j, i, txt, ha='center', va='center', color='white')
+        return plt
+
+    @property
+    def prediction(self) -> Optional[np.ndarray]:
+        assert self._prediction is not None, 'No prediction was set.'
+        return self._prediction
+
+    @prediction.setter
+    def prediction(self, val: np.ndarray):
+        assert isinstance(val, np.ndarray)
+        expected_shape = (self.verse_len - self.record_input_len, 2 ** self.record_output_len)
+        assert val.shape == expected_shape, f"{expected_shape = }, received_shape = {val.shape}"
+        self._prediction = val
 
     def __str__(self) -> str:
         bc = BinConverter(num_digits=1)

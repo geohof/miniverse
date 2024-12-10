@@ -1,5 +1,5 @@
 
-from miniverse.minimal_miniverse import Miniverse
+from miniverse.miniverse import Miniverse
 from miniverse.bug import Bug, array_to_str
 
 

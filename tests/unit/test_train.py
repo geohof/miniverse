@@ -6,7 +6,7 @@ from pytest import mark
 
 from miniverse.bin_converter import BinConverter
 from miniverse.miniverse import Miniverse
-from miniverse.bug import Bug
+from miniverse.animal import Animal
 
 from miniverse.timer import Timer
 
@@ -15,14 +15,14 @@ FILE_DIRECTORY = Path(__file__).parent
 logger = logging.getLogger(__name__)
 
 zoo = {
-    'zebra': Bug(pattern='01', repeat=16, frequency=.1),
-    'snake': Bug(pattern='0101', segment_len=8, frequency=.2),
-    'lion': Bug(pattern='0110', segment_len=8, frequency=.2)
+    'zebra': Animal(pattern='01', repeat=16, frequency=.1),
+    'snake': Animal(pattern='0101', segment_len=8, frequency=.2),
+    'lion': Animal(pattern='0110', segment_len=8, frequency=.2)
 }
 
 record_output_len = 1
 record_input_len = 40
-verse_len = 100_000
+verse_len = 500_000
 model_directory = FILE_DIRECTORY.parent.parent / 'models'
 model_directory.mkdir(exist_ok=True)
 id_str = f'{verse_len}_{record_output_len}'
@@ -32,7 +32,7 @@ output_file_name = model_directory / f'output_{id_str}.keras'
 
 @mark.skipif(model_file_name.exists(), reason='model already exists')
 def test_train_output():
-    mv_train = Miniverse(bug_spec=zoo, verse_len=verse_len, record_output_len=record_output_len,
+    mv_train = Miniverse(zoo=zoo, verse_len=verse_len, record_output_len=record_output_len,
                          record_input_len=record_input_len, random_seed=606)
     x_train, y_train = mv_train.get_training_data()
     bc = BinConverter(num_digits=record_output_len)
@@ -57,9 +57,9 @@ def test_train_output():
     model.save(model_file_name)
 def test_eval():
     model = tf.keras.models.load_model(model_file_name)
-    mv_test = Miniverse(bug_spec={'snake': Bug(pattern='0101', segment_len=8, frequency=.4)},
-                        verse_len=120, bug_position='equidistant', record_output_len=record_output_len,
-                         record_input_len=record_input_len, random_seed=606)
+    mv_test = Miniverse(zoo={'snake': Animal(pattern='0101', segment_len=8, frequency=.4)},
+                        verse_len=120, animal_position='equidistant', record_output_len=record_output_len,
+                        record_input_len=record_input_len, random_seed=606)
     x_test = mv_test.get_input_data()
     mv_test.prediction = model.predict(x_test)
     mv_test.to_plt(to_index=42).show()

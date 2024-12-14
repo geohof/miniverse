@@ -9,7 +9,7 @@ def array_to_str(vector: np.ndarray) -> str:
 
 
 @dataclass
-class Bug:
+class Animal:
     pattern: str = "0110"
     segment_len: int = 1
     repeat: int = 1

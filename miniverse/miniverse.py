@@ -3,6 +3,7 @@ from dataclasses import dataclass
 import numpy as np
 from typing import Literal, Optional
 
+import pandas as pd
 from matplotlib import pyplot as plt
 
 from miniverse.bin_converter import BinConverter, prob_to_char
@@ -96,22 +97,32 @@ class Miniverse:
         return input
 
 
-    def prediction_strs(self,  prediction_array: np.ndarray) -> list[str]:
-        bc = BinConverter(num_digits=self.record_output_len)
-        str_list = [f'o{bc.to_str(i)}: {"".join(prob_to_char(prediction_array[:, i]))}'.rjust(
-            self.verse_len - self.record_output_len) for i in
-                    range(2 ** self.record_output_len)]
+    def prediction_to_strs(self, to_index:int = None) -> list[str]:
+        rjust_len = self.record_output_len + 1
+        matrix = self.to_matrix(to_index=to_index)
+        str_list = [f'{self.matrix_names[0].rjust(rjust_len)}: {"".join(prob_to_char(matrix[0, :]))}']
+        str_list += [f'{self.matrix_names[i].rjust(rjust_len)}: {"".join(prob_to_char(matrix[i, :]))}'
+                     for i in range(1, 2 ** self.record_output_len + 1)]
         return str_list
 
-    def make_plt(self, to_index:int = None):
+    @property
+    def matrix_names(self) -> list[str]:
+        bc = BinConverter(num_digits=self.record_output_len)
+        return ['m'] + [f'o{bc.to_str(i)}' for i in range(2 ** self.record_output_len)]
+
+    def to_matrix(self, to_index:int = None) -> np.ndarray:
         matrix = np.vstack([[self.verse[self.record_input_len -1: -1]], self.prediction.transpose()])
         if to_index:
             matrix = matrix[:, :to_index]
+        return matrix
 
+
+    def to_plt(self, to_index:int = None) -> plt:
+        matrix = self.to_matrix(to_index=to_index)
         fig, ax = plt.subplots(figsize=(12, 6))
         ax.matshow(matrix, cmap='viridis')
         ax.set_yticks(np.arange(len(matrix)))
-        ax.set_yticklabels(['M', '000', '001', '010', '011', '100', '101', '110', '111'])
+        ax.set_yticklabels(self.matrix_names)
         def tmp_format(x):
             integer = int(val * 100 + .5)
             if integer == 100:
@@ -122,6 +133,11 @@ class Miniverse:
             txt = int(val + 0.5) if i == 0 else tmp_format(val)
             ax.text(j, i, txt, ha='center', va='center', color='white')
         return plt
+
+    def to_data_frame(self, to_index:int = None) -> pd.DataFrame:
+        df = pd.DataFrame(self.to_matrix(to_index=to_index).transpose())
+        df.columns = self.matrix_names
+        return df
 
     @property
     def prediction(self) -> Optional[np.ndarray]:

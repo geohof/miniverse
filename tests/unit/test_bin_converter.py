@@ -30,3 +30,6 @@ def test_prob_to_char():
     assert prob_to_char(.34) == '3'
     assert prob_to_char(.19) == '2'
     assert prob_to_char(.98) == '*'
+    assert prob_to_char(.98, num_digits=2) == '98'
+    assert prob_to_char(.02, num_digits=2) == '02'
+    assert prob_to_char(.002, num_digits=2) == '00'

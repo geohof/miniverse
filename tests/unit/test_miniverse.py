@@ -55,3 +55,7 @@ def test_create_miniverse():
     assert set(mvv).issubset({0, 1})
     assert mv.animal_num == {'zebra': 6, 'snake': 3}
     print(insert_newlines(array_to_str(mv.verse), 100))
+
+def test_miniverse_no_animal():
+    sample_verse = Miniverse(verse_len=8, random_seed=606)
+    assert str(sample_verse) == "11011000"

@@ -27,7 +27,7 @@ model_directory = FILE_DIRECTORY.parent.parent / 'models'
 model_directory.mkdir(exist_ok=True)
 id_str = f'{verse_len}_{record_output_len}'
 model_file_name = model_directory / f'model_{id_str}.keras'
-output_file_name = model_directory / f'output_{id_str}.keras'
+output_file_name = model_directory / f'output_{id_str}.csv'
 
 
 @mark.skipif(model_file_name.exists(), reason='model already exists')
@@ -62,7 +62,7 @@ def test_eval():
                         record_input_len=record_input_len, random_seed=606)
     x_test = mv_test.get_input_data()
     mv_test.prediction = model.predict(x_test)
-    mv_test.to_plt(to_index=42).show()
-    df = mv_test.to_data_frame(to_index=42)
+    mv_test.prediction_to_plt(to_index=42).show()
+    df = mv_test.prediction_to_data_frame(to_index=42)
     df.to_csv(output_file_name, index=False)
     print(*mv_test.prediction_to_strs(to_index=42), sep="\n")

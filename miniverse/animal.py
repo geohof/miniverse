@@ -1,6 +1,9 @@
 from dataclasses import dataclass
 
 import numpy as np
+from matplotlib import pyplot as plt
+
+from miniverse.plt import make_plt
 
 
 def array_to_str(vector: np.ndarray) -> str:
@@ -21,3 +24,6 @@ class Animal:
 
     def __str__(self) -> str:
         return array_to_str(self.vector)
+
+    def to_plt(self, animal_name: str = '') -> plt:
+        return make_plt(matrix=[self.vector], matrix_names=[animal_name])

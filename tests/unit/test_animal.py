@@ -10,3 +10,8 @@ def test_animal():
     assert str(lion)=='--------++++++++++++++++--------'
     zebra = Animal(pattern='01', repeat=16)
     assert str(zebra) == '-+' * 16
+
+
+def test_animal_plot():
+    lion = Animal(pattern='0110', segment_len=8)
+    lion.to_plt().show()

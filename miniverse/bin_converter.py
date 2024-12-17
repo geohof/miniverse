@@ -18,11 +18,11 @@ def to_int(string: str, num_digits: int) -> int:
 
 
 @np.vectorize
-def prob_to_char(prob: float) -> str:
-    integer = int(prob * 10 + 0.5)
-    char = str(integer)
-    if char == "10":
-        char = "*"
+def prob_to_char(prob: float, num_digits: int = 1) -> str:
+    integer = int(prob * (10 ** num_digits) + 0.5)
+    char = str(integer).rjust(num_digits, '0')
+    if integer == 10 ** num_digits:
+        char = "*" * num_digits
     return char
 
 

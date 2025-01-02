@@ -1,1 +1,3 @@
 [X] seeding during miniverse creation
+[ ] remove frequency from animals
+[ ] proper handling of miniverse with zero animals - equidistant

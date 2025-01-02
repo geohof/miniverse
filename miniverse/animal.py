@@ -27,3 +27,9 @@ class Animal:
 
     def to_plt(self, animal_name: str = '') -> plt:
         return make_plt(matrix=[self.vector], matrix_names=[animal_name])
+
+
+lion = Animal(pattern='0110', segment_len=8, frequency=.2)
+zebra = Animal(pattern='01', repeat=16, frequency=.1)
+snake = Animal(pattern='0101', segment_len=8, frequency=.2)
+
